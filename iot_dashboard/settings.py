@@ -64,6 +64,8 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+ALLOWED_HOSTS = ['RashidAbdul49.pythonanywhere.com']
+
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 
@@ -71,3 +73,5 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",  # make sure you have a folder named 'static' at the project root
 ]
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
