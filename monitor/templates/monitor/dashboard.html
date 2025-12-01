@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IoT Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background-color: #eaf3fc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .navbar { background-color: #0d6efd; }
+    .navbar-brand { font-weight: bold; color: #fff !important; }
+    .sensor-card { border-radius: 15px; padding: 20px; background-color: #fff; box-shadow: 0 4px 15px rgba(0,123,255,0.1); text-align: center; }
+    .sensor-title { font-size: 0.9rem; color: #6c757d; }
+    .sensor-value { font-size: 1.6rem; font-weight: 600; color: #0d6efd; }
+    .chart-box { width: 100%; height: 250px; background: #fff; border-radius: 15px; padding: 15px; box-shadow: 0 4px 15px rgba(0,123,255,0.1); }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">HydroSync</a>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <h2 class="text-center">Real-Time Water Quality</h2>
+  <div class="row gy-3 justify-content-center">
+    <div class="col-12 col-sm-6 col-md-4">
+      <div class="sensor-card">
+        <div class="sensor-title">Temperature</div>
+        <div class="sensor-value" id="temperature">{{ sensor_data.temperature }} °C</div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4">
+      <div class="sensor-card">
+        <div class="sensor-title">TDS</div>
+        <div class="sensor-value" id="tds">{{ sensor_data.tds }} ppm</div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4">
+      <div class="sensor-card">
+        <div class="sensor-title">Turbidity</div>
+        <div class="sensor-value" id="turbidity">{{ sensor_data.turbidity }} NTU</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4 gy-4 justify-content-center">
+    <div class="col-12 col-md-4"><div class="chart-box"><canvas id="tempChart"></canvas></div></div>
+    <div class="col-12 col-md-4"><div class="chart-box"><canvas id="tdsChart"></canvas></div></div>
+    <div class="col-12 col-md-4"><div class="chart-box"><canvas id="turbChart"></canvas></div></div>
+  </div>
+</div>
+
+<div class="container mt-3 mb-4">
+  <form method="get" class="d-flex gap-2 justify-content-center">
+    <select name="date_filter" class="form-select w-auto">
+      <option value="today" {% if date_filter == "today" %}selected{% endif %}>Today</option>
+      <option value="yesterday" {% if date_filter == "yesterday" %}selected{% endif %}>Yesterday</option>
+      <option value="custom" {% if date_filter == "custom" %}selected{% endif %}>Custom</option>
+    </select>
+    <input type="date" name="custom_date" class="form-control w-auto" value="{{ custom_date }}">
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </form>
+</div>
+
+<div class="container mt-4">
+  <h3 class="text-center mb-3">Records for {{ date_filter|title }} {% if custom_date %} ({{ custom_date }}) {% endif %}</h3>
+  <div style="max-height:400px; overflow-y:auto;">
+    <table class="table table-striped table-bordered">
+      <thead class="table-dark">
+        <tr>
+          <th>Timestamp</th>
+          <th>Temperature (°C)</th>
+          <th>TDS (ppm)</th>
+          <th>Turbidity (NTU)</th>
+          <th>Recorded By</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in records %}
+        <tr>
+          <td>{{ record.timestamp|date:"Y-m-d H:i:s" }}</td>
+          <td>{{ record.temperature }}</td>
+          <td>{{ record.tds }}</td>
+          <td>{{ record.turbidity }}</td>
+          <td>{{ record.recorded_by }}</td>
+          <td>{{ record.source }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center">No records found for this date.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Chart and live update JS -->
+<script>
+const labels = {{ chart_labels|safe }};
+const tempData = {{ temp_data|safe }};
+const tdsData = {{ tds_data|safe }};
+const turbData = {{ turb_data|safe }};
+
+function createChart(ctxId, label, data, color){
+  new Chart(document.getElementById(ctxId), {
+    type:'line',
+    data:{ labels: labels, datasets:[{label: label, data: data, fill:false, borderColor: color, tension:0.4}] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:false}} }
+  });
+}
+
+createChart("tempChart","Temperature (°C)",tempData,"#0d6efd");
+createChart("tdsChart","TDS (ppm)",tdsData,"#0d6efd");
+createChart("turbChart","Turbidity (NTU)",turbData,"#0d6efd");
+
+// Fetch live Blynk sensor data every 5s
+async function fetchBlynkData(){
+  try{
+    const response = await fetch("{% url 'get_blynk_data' %}");
+    const data = await response.json();
+    document.getElementById('temperature').innerText =
+      (data.temperature!=null && data.temperature!=-127) ? data.temperature+" °C":"No data";
+    document.getElementById('tds').innerText =
+      (data.tds!=null) ? data.tds+" ppm":"No data";
+    document.getElementById('turbidity').innerText =
+      (data.turbidity!=null) ? data.turbidity+" NTU":"No data";
+  }catch(err){console.error(err);}
+}
+setInterval(fetchBlynkData,5000);
+fetchBlynkData();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
