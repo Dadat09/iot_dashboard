@@ -7,7 +7,8 @@ SECRET_KEY = 'django-insecure-secret-key'
 DEBUG = False
 
 # ---------------- Hosts ----------------
-ALLOWED_HOSTS = ['XT202001014.pythonanywhere.com']
+ALLOWED_HOSTS = ['*']  # temporarily for testing
+
 
 # ---------------- Installed Apps ----------------
 INSTALLED_APPS = [
