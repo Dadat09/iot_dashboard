@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt  # added for IoT POSTs
 import requests
 
 from .models import WaterQualityRecord
@@ -119,6 +120,7 @@ def fetch_blynk_data():
 
 
 # ----- API endpoint to trigger fetch manually -----
+@csrf_exempt  # allow POSTs from external IoT device
 @login_required
 def get_blynk_data(request):
     data = fetch_blynk_data()
@@ -131,7 +133,7 @@ def custom_visuals(request):
     return render(request, 'monitor/custom_visuals.html')
 
 
-# ----- Add manual record -----
+# ----- Add manual record (if ever used) -----
 @login_required
 def add_record(request):
     if request.method == 'POST':

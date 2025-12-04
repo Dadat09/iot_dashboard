@@ -4,7 +4,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-secret-key'
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
@@ -64,7 +64,8 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-ALLOWED_HOSTS = ['RashidAbdul49.pythonanywhere.com']
+ALLOWED_HOSTS = ['*']
+
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
@@ -74,4 +75,3 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",  # make sure you have a folder named 'static' at the project root
 ]
 
-STATIC_ROOT = BASE_DIR / "staticfiles"
