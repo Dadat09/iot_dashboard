@@ -5,8 +5,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-secret-key'
 DEBUG = False
-ALLOWED_HOSTS = []
 
+# ---------------- Hosts ----------------
+ALLOWED_HOSTS = ['XT202001014.pythonanywhere.com']
+
+# ---------------- Installed Apps ----------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -17,11 +20,12 @@ INSTALLED_APPS = [
     'monitor',
 ]
 
+# ---------------- Middleware ----------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',  # ✅ keep this
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -29,6 +33,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'iot_dashboard.urls'
 
+# ---------------- Templates ----------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -47,6 +52,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'iot_dashboard.wsgi.application'
 
+# ---------------- Database ----------------
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -56,22 +62,28 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = []
 
+# ---------------- Auth ----------------
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 
+# ---------------- Internationalization ----------------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-ALLOWED_HOSTS = ['*']
-
-
-# Static files (CSS, JavaScript, Images)
+# ---------------- Static Files ----------------
 STATIC_URL = '/static/'
-
-# Optional (recommended) for development
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # make sure you have a folder named 'static' at the project root
+    BASE_DIR / "static",
 ]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# ---------------- Deployment-specific ----------------
+# Use HTTP for now on PythonAnywhere; set True when using HTTPS
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+
+# ---------------- Notes ----------------
+# Do NOT remove CsrfViewMiddleware!
+# Only use @csrf_exempt for external POST endpoints like Blynk
