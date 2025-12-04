@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt  # added for IoT POSTs
+from django.views.decorators.csrf import csrf_exempt  # <-- CSRF exemption import
 import requests
 
 from .models import WaterQualityRecord
@@ -76,7 +76,7 @@ def dashboard(request):
     })
 
 
-# ----- Fetch Blynk data (can be called manually or by Celery) -----
+# ----- Fetch Blynk data -----
 def fetch_blynk_data():
     token = 'z1L-DQ3rYMi4zanyN9-P8VgGHJ1Xg7uO'
     base_url = 'https://blynk.cloud/external/api/get'
@@ -119,12 +119,14 @@ def fetch_blynk_data():
     return sensor_data
 
 
-# ----- API endpoint to trigger fetch manually -----
-@csrf_exempt  # allow POSTs from external IoT device
-@login_required
+# ----- API endpoint to receive IoT POSTs -----
+@csrf_exempt  # <-- This allows POST requests without CSRF token
 def get_blynk_data(request):
-    data = fetch_blynk_data()
-    return JsonResponse(data)
+    if request.method == 'POST':
+        data = fetch_blynk_data()
+        return JsonResponse(data)
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
 # ----- Custom visuals page -----
